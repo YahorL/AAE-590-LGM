@@ -12,4 +12,3 @@ def so2_exp(theta):
 
 def so2_log(R):
     return np.arctan2(R[1][0], R[0][0])
-

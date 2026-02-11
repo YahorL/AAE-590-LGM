@@ -1,4 +1,5 @@
 import pytest
+
 import numpy as np
 from so2 import so2_wedge, so2_vee, so2_exp, so2_log
 
