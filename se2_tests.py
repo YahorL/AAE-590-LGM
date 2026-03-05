@@ -229,3 +229,51 @@ def test_se2_adjoint_inverse_random():
         Ad_inv = se2_Ad(xi_inv)
         Ad = se2_Ad(xi)
         np.testing.assert_array_almost_equal(Ad_inv, np.linalg.inv(Ad), decimal=7)
+
+
+@pytest.mark.parametrize("xi", [
+    np.array([0.0, 0.0, 0.0]),
+    np.array([1.5, -2.0, np.pi / 4]),
+    np.array([-3.2, 0.7, -np.pi / 3]),
+])
+def test_se2_adjoint_matches_closed_form(xi):
+    t = np.array([xi[0], xi[1]])
+    theta = xi[2]
+    R = so2_exp(theta)
+    # With this codebase's se2_wedge/se2_vee convention, the adjoint column is -J t.
+    J = np.array([[0.0, -1.0], [1.0, 0.0]])
+    expected = np.block([
+        [R, ((-J) @ t).reshape(2, 1)],
+        [np.zeros((1, 2)), np.array([[1.0]])],
+    ])
+    result = se2_Ad(xi)
+    np.testing.assert_array_almost_equal(result, expected)
+
+
+def _se2_tuple_to_matrix(X):
+    t, R = X
+    return np.block([
+        [R, t.reshape(2, 1)],
+        [np.zeros((1, 2)), np.array([[1.0]])],
+    ])
+
+
+def test_se2_adjoint_definition_conjugation_random():
+    rng = np.random.default_rng(7)
+    for _ in range(30):
+        xi_X = np.array([
+            rng.uniform(-2.0, 2.0),
+            rng.uniform(-2.0, 2.0),
+            rng.uniform(-np.pi, np.pi),
+        ])
+        eta = np.array([
+            rng.uniform(-2.0, 2.0),
+            rng.uniform(-2.0, 2.0),
+            rng.uniform(-2.0, 2.0),
+        ])
+        X_tuple = _xi_to_tuple(xi_X)
+        X_mat = _se2_tuple_to_matrix(X_tuple)
+
+        lhs = se2_vee(X_mat @ se2_wedge(eta) @ np.linalg.inv(X_mat))
+        rhs = se2_Ad(xi_X) @ eta
+        np.testing.assert_array_almost_equal(lhs, rhs, decimal=7)

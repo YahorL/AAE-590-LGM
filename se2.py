@@ -19,7 +19,7 @@ def se2_vee(Xi):
 def se2_exp(xi):
     if np.abs(xi[2]) < 1e-6:
         a = 1 - (xi[2]**2)/6 + (xi[2]**4)/120   
-        b = (xi[2] - (xi[2]**3)/6 + (xi[2]**5)/120)
+        b = xi[2]/2 - (xi[2]**3)/24 + (xi[2]**5)/720
         V = a * np.eye(2) + b * np.array([[0, -1], [1, 0]])
     else:
         sin = np.sin(xi[2])
@@ -44,6 +44,6 @@ def se2_log(X):
 
 def se2_Ad(X):
     return np.block([
-        [so2_exp(X[2]), np.array([[X[0]], [X[1]]])],
+        [so2_exp(X[2]), np.array([[X[1]], [-X[0]]])],
         [np.zeros((1, 2)), np.array([[1]])],
     ])
